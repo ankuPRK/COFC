@@ -17,5 +17,6 @@ Extract the .7z file in the same location as the original code. The resource con
 
 # Code
 The code consists of three files:
-1) GMM_Update_Uni.py: The model for updating the Centroids. It can also be easily modified to use Gaussians instead of just normal mean. However, in our case Gaussian was performing poorer. 
-2) 
+1) GMM_updation_uni.py: The model for updating the Centroids. It can also be easily modified to use Gaussians instead of just normal mean. However, in our case Gaussian was performing poorer. 
+2) Offline_Benchmarks.py: Offline algorithms using FACENET features. The algos are: GMM, KMeans, and Avg-track based features.
+3) Online_Clustering.py: Our online clustering based approach.
