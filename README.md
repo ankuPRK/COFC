@@ -33,7 +33,7 @@ optional arguments:
                       cluster
 ```
 
-Hence, you can run the algorithm on a video file. The output directory will contain one folder corresponding to each cluster, and then in each folder it will have all the faces belonging to that cluster. The algorithm is highly sensitive to SIM_THRESH. Its value ranges between (0.0, 4.0). Increasing beyond 3.2 will create a lot of clusters, each person will be split into multiple clusters. On the other hand, keeping it below say 2.8 will create less clusters but each cluster will have faces of multiple people.
+Hence, you can run the algorithm on a video file. The output directory will contain one folder corresponding to each cluster, and then in each folder it will have all the faces belonging to that cluster. The algorithm is highly sensitive to SIM_THRESH. Its value ranges between (0.0, 4.0). Increasing beyond 3.2 will create a lot of clusters, each person will be split into multiple clusters. On the other hand, keeping it below say 2.8 will create less clusters but each cluster will have faces of multiple characters.
 
 ```
 $ python run_COFC_on_video.py -vp <path_to_video> -sd <path_to_save_dir> -ft 1.0 -ot 0.85 -st 3.0
