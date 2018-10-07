@@ -5,6 +5,7 @@ import cv2
 from matplotlib import pyplot as plt
 import time
 from cofc_utils import face_element, display_cv_image, extract_bboxes_and_features, get_deep_feature, get_dlib_detector, get_face_bboxes_in_frame, initialize_deep_models, shot_boundary
+from argparse import ArgumentParser
 
 def get_facetracks_and_links(shot_data, th_feats=1.0, th_overlap=0.85):
     t1 = time.time()
@@ -49,59 +50,82 @@ def get_facetracks_and_links(shot_data, th_feats=1.0, th_overlap=0.85):
         i+=1
     return ls_tracks, qMatrix
     
-def process_shot(clusters_shot, ls_frames, detector, aligner, fnet):
+def process_shot(clusters_shot, ls_frames, detector, aligner, fnet, th_feats, th_overlap):
     t1 = time.time()
     shot_data = extract_bboxes_and_features(ls_frames, detector, aligner, fnet) # list of face_element
     t2 = time.time()
     print("Shot has %d faces on which OPENFACE took %.3f secs"%(len(shot_data), t2-t1))
     t1=t2
-    face_tracks, qMatrix = get_facetracks_and_links(shot_data)
+    face_tracks, qMatrix = get_facetracks_and_links(shot_data, th_feats, th_overlap)
     clusters_shot.cluster_online(face_tracks, qMatrix) #the functionwa in paperwa
     t2 = time.time()
     print("Processing the shot and clustering took %.2f secs"%(t2-t1))
     return face_tracks, qMatrix
-    
-path = "./will_smith_interview.mp4"
-cap = cv2.VideoCapture(path)
-aligner, fnet = initialize_deep_models()
-detector = get_dlib_detector()
 
-ret = False
+if __name__ == "__main__":
 
-ls_frames = []
+    parser = ArgumentParser()
 
-for i in range(2):
-    ret, frame = cap.read()
-    assert(ret==True)
-    if(i==0):
-        ppframe = frame
-    if(i==1):
-        pframe = frame
-    ls_frames.append(frame)
+    parser.add_argument("-vp",dest="vid_path", help="Path to the video file",
+                        type=str)
+    parser.add_argument("-sd",dest="save_dir", help="Directory path for saving the output",
+                        default="./Clusters", type=str)
+    parser.add_argument("-ft",dest="feat_thresh", help="Threshold of distance bw features to belong to different persons",
+                        default="1.0", type=float)
+    parser.add_argument("-ot",dest="overlap_thresh", help="Threshold of overlap above which two faces in consecutive frames will belong to same track",
+                        default="0.90", type=float)
+    parser.add_argument("-st",dest="sim_thresh", help="Threshold of Similarity for facetracks to belong to a cluster",
+                        default="3.0", type=float)
 
-clusters_shot = ClustersShots(3.0, "./clusters")
-kk = 0
-ft = []
-while(ret == True):
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-    if(ret==False):
-        # No frame detected hence video is ended.
-        print("Processing shot of n frames: " + str(len(ls_frames)))
-        ft, qmat = process_shot(clusters_shot, ls_frames, detector, aligner, fnet)
-        print(qmat)
-        ls_frames = []
-    else:
+    args = parser.parse_args()
+
+    path = args.vid_path
+    simThreshShot = args.sim_thresh 
+    th_feats = args.feat_thresh
+    th_overlap = args.overlap_thresh
+    saveDir = args.save_dir
+
+    cap = cv2.VideoCapture(path)
+    aligner, fnet = initialize_deep_models()
+    detector = get_dlib_detector()
+
+    ret = False
+
+    ls_frames = []
+
+    for i in range(2):
+        ret, frame = cap.read()
+        assert(ret==True)
+        if(i==0):
+            ppframe = frame
+        if(i==1):
+            pframe = frame
         ls_frames.append(frame)
-        sb = shot_boundary(ppframe, pframe, frame)
-        # If shot boundary is detected or clip is more than 100 frames (assuming framerate ~20-30fps), process it
-        if (sb or len(ls_frames) > 24*10): #more than 10s
+
+    clusters_shot = ClustersShots(simThreshShot, saveDir)
+    kk = 0
+    ft = []
+    while(ret == True):
+        # Capture frame-by-frame
+        ret, frame = cap.read()
+        if(ret==False):
+            # No frame detected hence video is ended.
             print("Processing shot of n frames: " + str(len(ls_frames)))
-            ft, qmat = process_shot(clusters_shot, ls_frames, detector, aligner, fnet)
+            ft, qmat = process_shot(clusters_shot, ls_frames, detector, aligner, fnet, th_feats, th_overlap)
             print(qmat)
             ls_frames = []
-        #update prev-prev frame and prev-frame
-        ppframe = pframe
-        pframe = frame
+        else:
+            ls_frames.append(frame)
+            sb = shot_boundary(ppframe, pframe, frame)
+            # If shot boundary is detected or clip is more than 100 frames (assuming framerate ~20-30fps), process it
+            if (sb or len(ls_frames) > 24*10): #more than 10s
+                print("Processing shot of n frames: " + str(len(ls_frames)))
+                ft, qmat = process_shot(clusters_shot, ls_frames, detector, aligner, fnet, th_feats, th_overlap)
+                print(qmat)
+                ls_frames = []
+            #update prev-prev frame and prev-frame
+            ppframe = pframe
+            pframe = frame
 
-print("Completed for the video: "+path)
+    print("Completed for the video: "+path)
+
