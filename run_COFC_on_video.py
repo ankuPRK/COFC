@@ -100,10 +100,10 @@ if __name__ == "__main__":
             ppframe = frame
         if(i==1):
             pframe = frame
-        ls_frames.append(frame)
+        ls_frames.append((i, frame))
 
     clusters_shot = ClustersShots(simThreshShot, saveDir)
-    kk = 0
+    kk = 2
     ft = []
     while(ret == True):
         # Capture frame-by-frame
@@ -115,7 +115,7 @@ if __name__ == "__main__":
             print(qmat)
             ls_frames = []
         else:
-            ls_frames.append(frame)
+            ls_frames.append((kk, frame))
             sb = shot_boundary(ppframe, pframe, frame)
             # If shot boundary is detected or clip is more than 100 frames (assuming framerate ~20-30fps), process it
             if (sb or len(ls_frames) > 24*10): #more than 10s
@@ -126,6 +126,7 @@ if __name__ == "__main__":
             #update prev-prev frame and prev-frame
             ppframe = pframe
             pframe = frame
+            kk+=1
 
     print("Completed for the video: "+path)
 

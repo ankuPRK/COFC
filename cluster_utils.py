@@ -8,12 +8,15 @@ class ClustersShots(BaseClusters):
 
     def __init__(self, simThresh, savePath="./clusters"):
         super(ClustersShots,self).__init__(simThresh)
+        if savePath[-1] !="/":
+            savePath+="/"        
         self.savePath = savePath
-        if os.path.exists(savePath):
-            print("Directory already exists! : "+savePath)
+        if os.path.exists(self.savePath):
+            print("Directory already exists! : "+self.savePath)
         else:
-            os.mkdir(savePath)
-            print("Creating directory: "+savePath)
+            os.mkdir(self.savePath)
+            print("Creating directory: "+self.savePath)
+
     def update_cluster(self, ls_data, jhat, kstar):
         track = ls_data[kstar]
         if jhat < len(self.clusters):
@@ -31,11 +34,11 @@ class ClustersShots(BaseClusters):
             N = len(track)
             mean_feat/=float(N)
             self.clusters.append((mean_feat, N))
-        if not os.path.exists("./clusters/"+str(jhat)+"/"):
-            print("Making new cluster: " + "./clusters/"+str(jhat)+"/")
-            os.mkdir("./clusters/"+str(jhat)+"/")
+        if not os.path.exists(self.savePath+str(jhat)+"/"):
+            print("Making new cluster: " + self.savePath + str(jhat)+"/")
+            os.mkdir(self.savePath+str(jhat)+"/")
         for j, f in enumerate(track):
-            cv2.imwrite("./clusters/"+str(jhat)+"/"+str(f.fno)+"_"+str(j)+".png", f.img)
+            cv2.imwrite(self.savePath+str(jhat)+"/"+str(f.fno)+"_"+str(j)+".png", f.img)
 
     def build_matrices(self, ls_data, ls_inds):
         

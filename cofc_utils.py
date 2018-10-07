@@ -63,7 +63,9 @@ def shot_boundary(ppf, pf, f, thresh=60):
 def extract_bboxes_and_features(ls_frames, detector, aligner, fnet):
     shot_data = []
     ii=0
-    for frame in ls_frames:
+    for f in ls_frames:
+        fno = f[0]        
+        frame = f[1]
         boxes = get_face_bboxes_in_frame(frame, detector)
         if(boxes.shape[0] == 0):
             continue 
@@ -75,6 +77,6 @@ def extract_bboxes_and_features(ls_frames, detector, aligner, fnet):
             
             im = frame[y1:y2, x1:x2].copy()
             feat = get_deep_feature(im, aligner, fnet)
-            shot_data.append(face_element(ii, boxes[i], im, feat))
+            shot_data.append(face_element(fno, boxes[i], im, feat))
         ii+=1
     return shot_data 
